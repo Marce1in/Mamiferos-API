@@ -1,6 +1,38 @@
 services:
   API:
+    container_name: mammals_api
+
+    build:
+      context: ./API/.
+    networks:
+      - mammals_network
 
   database:
+    container_name: mammals_databse
+
+    image: postgres:17.2-alpine3.20
+    networks:
+      - mammals_network
+
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_DB: ${DB_NAME}
+      PG_DATA: /var/lib/postgresql/data
+
+    volumes:
+      mammals_db_data:/var/lib/postgresql/data
+
 
   client:
+    container_name: mammals_client
+
+    build:
+      context: ./client/.
+    networks:
+      - mammals_network
+
+networks:
+  mammals_network:
+volumes:
+  mammals_db_data:
