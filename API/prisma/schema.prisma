@@ -12,3 +12,38 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model Mammals {
+  id Int @id @default(autoincrement())
+  species String @db.VarChar(64)
+  subclass Subclass
+  habitat Habitat
+  diet Diet
+
+  deleted Boolean @default(false)
+}
+
+model User {
+  id Int @id @default(autoincrement())
+  name String @db.VarChar(32)
+  email String @db.VarChar(512) @unique
+  passwd String
+}
+
+enum Subclass {
+  placental
+  marsupial
+  monotreme
+}
+
+enum Habitat {
+  terrestrial
+  aquatic
+  aerial
+}
+
+enum Diet {
+  carnivore
+  herbivore
+  omnivore
+}
