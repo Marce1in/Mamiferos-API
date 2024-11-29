@@ -1,7 +1,10 @@
 
 import requests
+import matplotlib
+
+matplotlib.use("QtAgg")
+
 import matplotlib.pyplot as plt
-import numpy as np
 
 url = "http://localhost:3000/mammals"  # Alterado para mamíferos
 url_login = "http://localhost:3000/user/login"
@@ -167,95 +170,56 @@ def exclusao():
             print("Erro... Não foi possível excluir este mamífero")
 
 
-# def grafico():
-#     response = requests.get(url)
-#
-#     if response.status_code != 200:
-#         print("Erro... Não foi possível acessar a API")
-#         return
-#
-#     mamiferos = response.json()
-#     labels = list(set([x['especie'] for x in mamiferos]))
-#     sizes = [0] * len(labels)
-#
-#     for mamifero in mamiferos:
-#         index = labels.index(mamifero['especie'])
-#         sizes[index] += 1
-#
-#     fig, ax = plt.subplots(figsize=(9, 5))
-#     ax.set_title('Número de Mamíferos por Espécie')
-#     plt.gcf().canvas.manager.set_window_title("Gráfico por Espécie")
-#     ax.pie(sizes, labels=labels)
-#     plt.show()
+def grafico():
+    response = requests.get(url)
+
+    if response.status_code != 200:
+        print("Erro... Não foi possível acessar a API")
+        return
+
+    mamiferos = response.json()
+    labels = list(set([x['habitat'] for x in mamiferos]))
+    sizes = [0] * len(labels)
+
+    for mamifero in mamiferos:
+        index = labels.index(mamifero['habitat'])
+        sizes[index] += 1
+
+    fig, ax = plt.subplots(figsize=(9, 5))
+    ax.set_title('Número de Mamíferos em um Habitat')
+    plt.gcf().canvas.manager.set_window_title("Gráfico dos Habitats")
+    ax.pie(sizes, labels=labels)
+    plt.show()
 
 
-# def grafico2():
-#     response = requests.get(url)
-#
-#     if response.status_code != 200:
-#         print("Erro... Não foi possível acessar a API")
-#         return
-#
-#     mamiferos = response.json()
-#     especies = tuple(set([x['especie'] for x in mamiferos]))
-#     quant_em_perigo = [0] * len(especies)
-#     quant_estaveis = [0] * len(especies)
-#
-#     for mamifero in mamiferos:
-#         index = especies.index(mamifero['especie'])
-#         if mamifero['estado_conservacao'] == 'Em Perigo':
-#             quant_em_perigo[index] += 1
-#         else:
-#             quant_estaveis[index] += 1
-#
-#     tipos_quants = {
-#         "Em Perigo": quant_em_perigo,
-#         "Estáveis": quant_estaveis
-#     }
-#     width = 0.5
-#
-#     fig, ax = plt.subplots(figsize=(9, 5))
-#     bottom = np.zeros(len(especies))
-#
-#     for tipo, quants in tipos_quants.items():
-#         p = ax.bar(especies, quants, width, label=tipo, bottom=bottom)
-#         bottom += quants
-#
-#     ax.set_title("Número de Mamíferos por Espécie e Conservação")
-#     plt.gcf().canvas.manager.set_window_title("Gráfico por Conservação")
-#     ax.legend(loc="upper left")
-#
-#     plt.show()
+def grafico2():
+    response = requests.get(url)
 
+    if response.status_code != 200:
+        print("Erro... Não foi possível acessar a API")
+        return
 
-# def grafico3():
-#     response = requests.get(url)
-#
-#     if response.status_code != 200:
-#         print("Erro... Não foi possível acessar a API")
-#         return
-#
-#     mamiferos = response.json()
-#     habitos = tuple(set([x['habitat'] for x in mamiferos]))
-#     quants = [0] * len(habitos)
-#
-#     for mamifero in mamiferos:
-#         index = habitos.index(mamifero['habitat'])
-#         quants[index] += 1
-#
-#     fig, ax = plt.subplots(figsize=(9, 5))
-#
-#     y_pos = [i for i in range(len(habitos))]
-#
-#     colors = ['blue', 'green', 'red', 'purple', 'orange', 'cyan', 'yellow']
-#     ax.barh(y_pos, quants, align='center', color=colors)
-#     ax.set_yticks(y_pos, labels=habitos)
-#     ax.invert_yaxis()  # labels read top-to-bottom
-#     ax.set_xlabel('Quantidade')
-#     ax.set_title('Quantidade de Mamíferos por Habitat')
-#     plt.gcf().canvas.manager.set_window_title("Gráfico por Habitat")
-#
-#     plt.show()
+    mamiferos = response.json()
+    dietas = tuple(set([x['diet'] for x in mamiferos]))
+    quantidade = [0] * len(dietas)
+
+    for mamifero in mamiferos:
+        index = dietas.index(mamifero['diet'])
+        quantidade[index] += 1
+
+    fig, ax = plt.subplots(figsize=(9, 5))
+
+    y_pos = [i for i in range(len(dietas))]
+
+    colors = ['blue', 'green', 'red', 'purple', 'orange', 'cyan', 'yellow']
+    ax.barh(y_pos, quantidade, align='center', color=colors)
+    ax.set_yticks(y_pos, labels=dietas)
+    ax.invert_yaxis()
+    ax.set_xlabel('Quantidade')
+    ax.set_title('Quantidade de Mamíferos por dieta')
+    plt.gcf().canvas.manager.set_window_title("Gráfico por Dieta")
+
+    plt.show()
 
 
 def titulo(texto, traco="-"):
@@ -273,8 +237,7 @@ while True:
     print("4. Alteração de Espécie")
     print("5. Exclusão de Mamífero")
     print("6. Gráfico de Habitat (Pizza)")
-    print("7. Gráfico de Espécies e Conservação (Colunas Empilhadas)")
-    print("8. Gráfico de Habitat (Barras)")
+    print("7. Gráfico da Dieta de mamíferos (Colunas Empilhadas)")
     print("9. Finalizar")
     opcao = int(input("Opção: "))
     if opcao == 1:
@@ -287,11 +250,9 @@ while True:
         alteracao()
     elif opcao == 5:
         exclusao()
-    # elif opcao == 6:
-    #     grafico()
-    # elif opcao == 7:
-    #     grafico2()
-    # elif opcao == 8:
-    #     grafico3()
+    elif opcao == 6:
+        grafico()
+    elif opcao == 7:
+        grafico2()
     else:
         break
