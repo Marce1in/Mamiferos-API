@@ -73,7 +73,7 @@ router.post("/register", async(req, res) => {
     const errors = validatePasswd(result.data.passwd)
 
     if(errors.length > 0){
-        res.status(400).json({ error: errors.join("| ")})
+        res.status(400).json({ error: errors.join(" | ")})
         return
     }
 
@@ -113,7 +113,7 @@ router.post("/login", async(req, res) => {
 
         if (bcrypt.compareSync(result.data.passwd, user.passwd)) {
             const token = jwt.sign(
-                { userLogId: user.id, userLogName: user.name },
+                { userLoggedId: user.id, userLoggedName: user.name },
                 process.env.JWT_KEY as string,
                 { expiresIn: '1h' }
             )
@@ -122,7 +122,7 @@ router.post("/login", async(req, res) => {
                 id: user.id,
                 name: user.name,
                 email: user.email,
-                token
+                token: token
             })
         }
         else {
@@ -130,18 +130,68 @@ router.post("/login", async(req, res) => {
             await prisma.log.create({
                 data: {
                     userId: user.id,
-                    descricao: "Tentativa de login com senha inválida",
-                    complemento: `Funcionário: ${user.name}`
+                    description: "Failed attempt to login in",
                 }
             })
 
-            res.status(400).json({ error: mensaPadrao })
+            res.status(400).json({ error: "Email/passoword not found" })
         }
     } catch (error) {
         res.status(500).json({ error: error })
     }
 })
 
-router.post("/newpass", async(req, res) => {
-    const result = newPasswdSchema.safeParse(req.body)
-})
+router.put("/newpass", async (req, res) => {
+    const result = newPasswdSchema.safeParse(req.body);
+
+    if (!result.success) {
+        res.status(400).json({ error: result.error });
+        return;
+    }
+
+    const { email, passwd, newpasswd } = result.data;
+
+    const errors = validatePasswd(newpasswd);
+    if (errors.length > 0) {
+        res.status(400).json({ error: errors.join(" | ") });
+        return;
+    }
+
+    try {
+        // Find the user by email
+        const user = await prisma.user.findFirst({
+            where: { email: email },
+        });
+
+        if (!user) {
+            res.status(404).json({ error: "User not found" });
+            return;
+        }
+
+        if (!bcrypt.compareSync(passwd, user.passwd)) {
+            res.status(403).json({ error: "Incorrect current password" });
+            return;
+        }
+
+        const salt = bcrypt.genSaltSync(14);
+        const hash = bcrypt.hashSync(newpasswd, salt);
+
+        await prisma.user.update({
+            where: { id: user.id },
+            data: { passwd: hash },
+        });
+
+        await prisma.log.create({
+            data: {
+                userId: user.id,
+                description: "Password changed successfully",
+            },
+        });
+
+        res.status(200).json({ message: "Password updated successfully" });
+    } catch (error) {
+        res.status(500).json({ error: "Internal server error" });
+    }
+});
+
+export default router

@@ -1,6 +1,7 @@
 import { PrismaClient, Subclass, Habitat, Diet } from "@prisma/client";
 import { Router } from "express";
 import { z } from "zod"
+import { checkToken, Token } from "../middlewares/checkToken";
 
 const router = Router()
 const prisma = new PrismaClient()
@@ -50,7 +51,7 @@ router.get("/:id", async(req, res) => {
     res.status(200).json(mammal)
 })
 
-router.post("/", async(req, res) => {
+router.post("/", checkToken, async(req, res) => {
     const result = mammalsSchema.safeParse(req.body)
 
     if(!result.success){
@@ -59,7 +60,8 @@ router.post("/", async(req, res) => {
     }
 
     const mammal = await prisma.mammals.create({
-        data: result.data,
+        //@ts-ignore
+        data: {...result.data, userId: req.userLoggedId},
 
         select: {
             id: true,
@@ -73,7 +75,7 @@ router.post("/", async(req, res) => {
     res.status(201).json(mammal)
 })
 
-router.delete("/:id", async(req, res) => {
+router.delete("/:id", checkToken, async(req, res) => {
     const { id } = req.params
 
     const mammal = await prisma.mammals.update({
@@ -92,7 +94,7 @@ router.delete("/:id", async(req, res) => {
     res.status(201).json(mammal)
 })
 
-router.put("/:id", async(req, res) => {
+router.put("/:id", checkToken, async(req, res) => {
     const { id } = req.params
     const result = mammalsSchema.safeParse(req.body)
 

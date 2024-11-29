@@ -21,6 +21,9 @@ model Mammals {
   habitat Habitat
   diet Diet
 
+  userId  Int
+  user     User     @relation(fields: [userId], references: [id])
+
   deleted Boolean @default(false)
 
   @@map("mammals")
@@ -32,6 +35,7 @@ model User {
   email String @db.VarChar(512) @unique
   passwd String
 
+  mammals Mammals[]
   log Log[]
 
   @@map("user")

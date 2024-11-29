@@ -1,12 +1,12 @@
 import { Request, Response, NextFunction } from 'express'
 import jwt from "jsonwebtoken"
 
-interface Token {
+export interface Token {
     userLoggedId: number
     userLoggedName: string
 }
 
-export function verifyToken(req: Request | any, res: Response, next: NextFunction) {
+export function checkToken(req: Request | any, res: Response, next: NextFunction) {
     const { authorization } = req.headers
 
     if (!authorization) {
@@ -20,8 +20,8 @@ export function verifyToken(req: Request | any, res: Response, next: NextFunctio
         const decode = jwt.verify(token, process.env.JWT_KEY as string)
         const { userLoggedId: userLoggedId, userLoggedName: userLoggedName } = decode as Token
 
-        req.userLogadoId   = userLoggedId
-        req.userLogadoNome = userLoggedName
+        req.userLoggedId   = userLoggedId
+        req.userLoggedName = userLoggedName
 
         next()
     } catch (error) {
